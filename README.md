@@ -5,6 +5,13 @@
 
 This project rebuilds a production backend pattern—**workflow orchestration**—as an on-chain Solana Anchor program. Instead of trusting a centralized server to manage approvals, retries, and escalations, all business logic is enforced by the blockchain.
 
+## Devnet Deployment
+
+| Resource | Link |
+|----------|------|
+| **Program ID** | [ETggxWEvQkEu3EPh5APnpY9C5oDMnNDStYtsgaaCW3BB](https://explorer.solana.com/address/ETggxWEvQkEu3EPh5APnpY9C5oDMnNDStYtsgaaCW3BB?cluster=devnet) |
+| **Live Demo** | [workflow-bounty.vercel.app](https://workplace-bounty.vercel.app/)|
+
 ## What This Solves
 
 Traditional workflow engines (Temporal, AWS Step Functions, custom approval systems) rely on:
@@ -190,7 +197,7 @@ These limits prevent unbounded on-chain resource consumption:
 ### Prerequisites
 - Rust + Cargo
 - Solana CLI (1.18+)
-- Anchor CLI (0.30.1)
+- Anchor CLI (0.30+)
 - Node.js (18+)
 
 ### Build & Test
@@ -202,21 +209,32 @@ npm install
 # Build the program
 anchor build
 
-# Run integration tests (deploys to localnet)
-anchor test
+# Sync program keys (updates declare_id! and Anchor.toml)
+anchor keys sync
 
-# Run state machine model tests
+# Run state machine model tests (no validator needed)
 npm test
 ```
 
-### Interactive Demo
+### Running Locally
 
+The interactive demo requires a running Solana validator with the program deployed.
+
+**Terminal 1 — Start local validator:**
 ```bash
-# Run full scenario demonstrating all transitions
-npm run demo:scenario
+solana-test-validator
 ```
 
-This walks through:
+**Terminal 2 — Deploy and run:**
+```bash
+# Deploy to local validator
+anchor deploy
+
+# Run the full demo scenario
+npm run demo:local
+```
+
+The demo walks through:
 1. Workspace creation
 2. Template creation (3 stages, retry_limit=3)
 3. Run instantiation
@@ -226,14 +244,38 @@ This walks through:
 7. Retry limit enforcement
 8. Escalation guard (deadline check)
 
-### Keeper Service
+### Running on Devnet
 
 ```bash
-# Dry run - shows what would be escalated
+# Ensure you have devnet SOL
+solana config set --url devnet
+solana airdrop 2
+
+# Run demo against deployed devnet program
+npm run demo:devnet
+```
+
+### Anchor Test (All-in-One)
+
+`anchor test` handles everything automatically — starts validator, deploys, runs tests, and shuts down:
+
+```bash
+anchor test
+```
+
+### Keeper Service
+
+The keeper monitors tasks and triggers escalation for overdue items.
+
+```bash
+# Local - dry run (shows what would be escalated)
 npm run keeper:dry-run
 
-# Live mode - actually calls escalate_task
-npm run keeper:dry-run -- --live
+# Local - live mode (actually calls escalate_task)
+npm run keeper:live
+
+# Devnet - live mode
+npm run keeper:devnet
 ```
 
 The keeper:
@@ -252,7 +294,7 @@ npm install
 npm run dev
 ```
 
-Opens at `http://localhost:3000` — shows program invariants, state transitions, and the traditional→on-chain comparison.
+Opens at `http://localhost:3000` — interactive UI to explore the program, create workflows, and submit tasks.
 
 ## Security Model
 
