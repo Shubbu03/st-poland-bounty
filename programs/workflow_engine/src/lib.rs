@@ -10,7 +10,7 @@ pub use constant::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkgMQHGnZ6f7c");
+declare_id!("ETggxWEvQkEu3EPh5APnpY9C5oDMnNDStYtsgaaCW3BB");
 
 #[program]
 pub mod workflow_engine {

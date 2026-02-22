@@ -6,10 +6,13 @@
   "scripts": {
     "build": "anchor build",
     "test": "ts-mocha -p tsconfig.json -t 1000000 tests/workflow_engine.model.spec.ts",
+    "test:anchor": "ts-mocha -p tsconfig.json -t 1000000 'tests/**/*.spec.ts'",
     "test:integration": "anchor test",
-    "demo:scenario": "ANCHOR_PROVIDER_URL=http://localhost:8899 ANCHOR_WALLET=~/.config/solana/id.json tsx scripts/demo-scenario.ts",
+    "demo:local": "ANCHOR_PROVIDER_URL=http://localhost:8899 ANCHOR_WALLET=~/.config/solana/id.json tsx scripts/demo-scenario.ts",
+    "demo:devnet": "ANCHOR_PROVIDER_URL=https://api.devnet.solana.com ANCHOR_WALLET=~/.config/solana/id.json tsx scripts/demo-scenario.ts",
     "keeper:dry-run": "ANCHOR_PROVIDER_URL=http://localhost:8899 ANCHOR_WALLET=~/.config/solana/id.json tsx keeper/index.ts",
-    "keeper:live": "ANCHOR_PROVIDER_URL=http://localhost:8899 ANCHOR_WALLET=~/.config/solana/id.json tsx keeper/index.ts --live"
+    "keeper:live": "ANCHOR_PROVIDER_URL=http://localhost:8899 ANCHOR_WALLET=~/.config/solana/id.json tsx keeper/index.ts --live",
+    "keeper:devnet": "ANCHOR_PROVIDER_URL=https://api.devnet.solana.com ANCHOR_WALLET=~/.config/solana/id.json tsx keeper/index.ts --live"
   },
   "devDependencies": {
     "@coral-xyz/anchor": "^0.30.1",
