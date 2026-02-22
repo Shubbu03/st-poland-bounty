@@ -29,7 +29,7 @@ describe("workflow_engine integration tests", () => {
     it("creates a workspace", async () => {
       const tx = await program.methods
         .createWorkspace(workspaceId)
-        .accounts({
+        .accountsPartial({
           admin: admin.publicKey,
           workspace: workspacePda,
           systemProgram: anchor.web3.SystemProgram.programId,
@@ -70,7 +70,7 @@ describe("workflow_engine integration tests", () => {
           escalationSeconds: new anchor.BN(3600),
           stages,
         })
-        .accounts({
+        .accountsPartial({
           admin: admin.publicKey,
           workspace: workspacePda,
           template: templatePda,
@@ -104,7 +104,7 @@ describe("workflow_engine integration tests", () => {
             escalationSeconds: new anchor.BN(3600),
             stages: [{ kind: { manualApproval: {} }, requiredRole: 1, slaSeconds: new anchor.BN(300) }],
           })
-          .accounts({
+          .accountsPartial({
             admin: admin.publicKey,
             workspace: workspacePda,
             template: badTemplatePda,
@@ -140,7 +140,7 @@ describe("workflow_engine integration tests", () => {
 
       await program.methods
         .startWorkflowRun(0)
-        .accounts({
+        .accountsPartial({
           creator: admin.publicKey,
           workspace: workspacePda,
           template: templatePda,
@@ -163,7 +163,7 @@ describe("workflow_engine integration tests", () => {
     it("submits task result successfully -> awaiting_approval", async () => {
       await program.methods
         .submitTaskResult(true, 0)
-        .accounts({
+        .accountsPartial({
           actor: admin.publicKey,
           workspace: workspacePda,
           run: runPda,
@@ -181,7 +181,7 @@ describe("workflow_engine integration tests", () => {
     it("admin approves task -> completed", async () => {
       await program.methods
         .approveTask()
-        .accounts({
+        .accountsPartial({
           admin: admin.publicKey,
           workspace: workspacePda,
           run: runPda,
@@ -222,7 +222,7 @@ describe("workflow_engine integration tests", () => {
 
       await program.methods
         .startWorkflowRun(0)
-        .accounts({
+        .accountsPartial({
           creator: admin.publicKey,
           workspace: workspacePda,
           template: templatePda,
@@ -238,7 +238,7 @@ describe("workflow_engine integration tests", () => {
     it("submits failed result -> status=Failed", async () => {
       await program.methods
         .submitTaskResult(false, 1001)
-        .accounts({
+        .accountsPartial({
           actor: admin.publicKey,
           workspace: workspacePda,
           run: run2Pda,
@@ -257,7 +257,7 @@ describe("workflow_engine integration tests", () => {
     it("admin retries failed task -> back to InProgress", async () => {
       await program.methods
         .retryTask()
-        .accounts({
+        .accountsPartial({
           admin: admin.publicKey,
           workspace: workspacePda,
           run: run2Pda,
@@ -277,7 +277,7 @@ describe("workflow_engine integration tests", () => {
       for (let i = 0; i < 2; i++) {
         await program.methods
           .submitTaskResult(false, 1002 + i)
-          .accounts({
+          .accountsPartial({
             actor: admin.publicKey,
             workspace: workspacePda,
             run: run2Pda,
@@ -288,7 +288,7 @@ describe("workflow_engine integration tests", () => {
 
         await program.methods
           .retryTask()
-          .accounts({
+          .accountsPartial({
             admin: admin.publicKey,
             workspace: workspacePda,
             run: run2Pda,
@@ -300,7 +300,7 @@ describe("workflow_engine integration tests", () => {
 
       await program.methods
         .submitTaskResult(false, 9999)
-        .accounts({
+        .accountsPartial({
           actor: admin.publicKey,
           workspace: workspacePda,
           run: run2Pda,
@@ -316,7 +316,7 @@ describe("workflow_engine integration tests", () => {
       try {
         await program.methods
           .retryTask()
-          .accounts({
+          .accountsPartial({
             admin: admin.publicKey,
             workspace: workspacePda,
             run: run2Pda,
@@ -353,7 +353,7 @@ describe("workflow_engine integration tests", () => {
 
       await program.methods
         .startWorkflowRun(0)
-        .accounts({
+        .accountsPartial({
           creator: admin.publicKey,
           workspace: workspacePda,
           template: templatePda,
@@ -366,7 +366,7 @@ describe("workflow_engine integration tests", () => {
       try {
         await program.methods
           .escalateTask()
-          .accounts({
+          .accountsPartial({
             run: run3Pda,
             task: task3Pda,
           })
@@ -399,7 +399,7 @@ describe("workflow_engine integration tests", () => {
       try {
         await program.methods
           .approveTask()
-          .accounts({
+          .accountsPartial({
             admin: randomUser.publicKey,
             workspace: randomWorkspace,
             run: runPda,
@@ -418,7 +418,7 @@ describe("workflow_engine integration tests", () => {
     it("admin can close a completed run", async () => {
       await program.methods
         .closeRun()
-        .accounts({
+        .accountsPartial({
           actor: admin.publicKey,
           workspace: workspacePda,
           run: runPda,

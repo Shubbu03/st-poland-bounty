@@ -1,6 +1,10 @@
 "use client";
 
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { PROGRAM_ID } from "./providers";
 
 type TransitionExample = {
   from: string;
@@ -14,6 +18,13 @@ type ComparisonRow = {
   aspect: string;
   traditional: string;
   onChain: string;
+};
+
+type ProgramInfo = {
+  exists: boolean;
+  executable: boolean;
+  lamports: number;
+  owner: string;
 };
 
 const styles = {
@@ -127,22 +138,21 @@ const styles = {
     fontSize: 12,
     fontWeight: 500,
     background: status === "InProgress" ? "rgba(59, 130, 246, 0.2)" :
-                status === "AwaitingApproval" ? "rgba(168, 85, 247, 0.2)" :
-                status === "Failed" ? "rgba(239, 68, 68, 0.2)" :
-                status === "Escalated" ? "rgba(249, 115, 22, 0.2)" :
-                "rgba(34, 197, 94, 0.2)",
+      status === "AwaitingApproval" ? "rgba(168, 85, 247, 0.2)" :
+        status === "Failed" ? "rgba(239, 68, 68, 0.2)" :
+          status === "Escalated" ? "rgba(249, 115, 22, 0.2)" :
+            "rgba(34, 197, 94, 0.2)",
     color: status === "InProgress" ? "#60a5fa" :
-           status === "AwaitingApproval" ? "#c084fc" :
-           status === "Failed" ? "#f87171" :
-           status === "Escalated" ? "#fb923c" :
-           "#4ade80",
-    border: `1px solid ${
-      status === "InProgress" ? "rgba(59, 130, 246, 0.3)" :
+      status === "AwaitingApproval" ? "#c084fc" :
+        status === "Failed" ? "#f87171" :
+          status === "Escalated" ? "#fb923c" :
+            "#4ade80",
+    border: `1px solid ${status === "InProgress" ? "rgba(59, 130, 246, 0.3)" :
       status === "AwaitingApproval" ? "rgba(168, 85, 247, 0.3)" :
-      status === "Failed" ? "rgba(239, 68, 68, 0.3)" :
-      status === "Escalated" ? "rgba(249, 115, 22, 0.3)" :
-      "rgba(34, 197, 94, 0.3)"
-    }`,
+        status === "Failed" ? "rgba(239, 68, 68, 0.3)" :
+          status === "Escalated" ? "rgba(249, 115, 22, 0.3)" :
+            "rgba(34, 197, 94, 0.3)"
+      }`,
   }),
   codeBlock: {
     background: "rgba(0, 0, 0, 0.4)",
@@ -189,10 +199,44 @@ const styles = {
 
 export default function Page() {
   const [mounted, setMounted] = useState(false);
+  const [programInfo, setProgramInfo] = useState<ProgramInfo | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const { connection } = useConnection();
+  const { publicKey } = useWallet();
+
+  const copyToClipboard = useCallback(async (text: string) => {
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, []);
+
+  const fetchProgramInfo = useCallback(async () => {
+    setLoading(true);
+    try {
+      const programPubkey = new PublicKey(PROGRAM_ID);
+      const accountInfo = await connection.getAccountInfo(programPubkey);
+      if (accountInfo) {
+        setProgramInfo({
+          exists: true,
+          executable: accountInfo.executable,
+          lamports: accountInfo.lamports,
+          owner: accountInfo.owner.toBase58(),
+        });
+      } else {
+        setProgramInfo({ exists: false, executable: false, lamports: 0, owner: "" });
+      }
+    } catch {
+      setProgramInfo(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [connection]);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    fetchProgramInfo();
+  }, [fetchProgramInfo]);
 
   const transitions: TransitionExample[] = [
     { from: "InProgress", action: "submit_task_result(success=true)", to: "AwaitingApproval", actor: "operator/creator", enforced: "deadline + role check" },
@@ -226,6 +270,48 @@ export default function Page() {
           and an immutable transition timeline.
         </p>
       </header>
+
+      <section style={{
+        background: "linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%)",
+        border: "1px solid rgba(34, 197, 94, 0.3)",
+        borderRadius: 16,
+        padding: "24px 32px",
+        marginBottom: 48,
+        display: "flex",
+        flexDirection: "column" as const,
+        alignItems: "center",
+        gap: 16,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontSize: 18, fontWeight: 600, color: "#4ade80" }}>Try it on Devnet</span>
+        </div>
+        <p style={{ color: "#a1a1aa", margin: 0, textAlign: "center" as const, maxWidth: 500 }}>
+          Run the full workflow demo against the deployed program on Solana Devnet
+        </p>
+        <button
+          onClick={() => copyToClipboard("npm run demo:devnet")}
+          style={{
+            background: "rgba(0, 0, 0, 0.4)",
+            borderRadius: 8,
+            padding: "12px 20px",
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: 14,
+            color: copied ? "#a5b4fc" : "#4ade80",
+            border: `1px solid ${copied ? "rgba(99, 102, 241, 0.5)" : "rgba(34, 197, 94, 0.3)"}`,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            transition: "all 0.2s ease",
+          }}
+        >
+          <span>npm run demo:devnet</span>
+          <span style={{ fontSize: 12, opacity: 0.7 }}>{copied ? "✓ Copied!" : "Copy"}</span>
+        </button>
+        <p style={{ color: "#71717a", margin: 0, fontSize: 13 }}>
+          Creates workspace → template → run → submits tasks → approves → retries → escalates
+        </p>
+      </section>
 
       <section style={styles.section}>
         <h2 style={styles.sectionTitle}>Program Invariants</h2>
@@ -313,7 +399,7 @@ export default function Page() {
         <h2 style={styles.sectionTitle}>Key On-Chain Enforcement</h2>
         <div style={styles.codeBlock}>
           <pre style={{ margin: 0, color: "#a1a1aa" }}>
-{`// Authorization: Only admin can approve
+            {`// Authorization: Only admin can approve
 #[account(
     seeds = [b"workspace", admin.key().as_ref()],
     bump = workspace.bump,
@@ -340,20 +426,82 @@ require!(
       </section>
 
       <section style={styles.section}>
+        <h2 style={styles.sectionTitle}>Live on Devnet</h2>
+        <div style={styles.grid}>
+          <div style={styles.card}>
+            <div style={styles.cardTitle}>Program Status</div>
+            {loading ? (
+              <div style={{ color: "#71717a" }}>Loading...</div>
+            ) : programInfo?.exists ? (
+              <>
+                <div style={{ ...styles.cardValue, fontSize: 20, color: "#4ade80" }}>Deployed</div>
+                <div style={styles.cardDesc}>
+                  {programInfo.executable ? "Executable" : "Not executable"} · {(programInfo.lamports / LAMPORTS_PER_SOL).toFixed(4)} SOL
+                </div>
+              </>
+            ) : (
+              <div style={{ color: "#f87171" }}>Not found</div>
+            )}
+          </div>
+          <div style={styles.card}>
+            <div style={styles.cardTitle}>Program ID</div>
+            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: "#a5b4fc", wordBreak: "break-all" }}>
+              {PROGRAM_ID}
+            </div>
+            <a
+              href={`https://explorer.solana.com/address/${PROGRAM_ID}?cluster=devnet`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ ...styles.link, fontSize: 13, marginTop: 8, display: "inline-block" }}
+            >
+              View on Explorer →
+            </a>
+          </div>
+          <div style={styles.card}>
+            <div style={styles.cardTitle}>Your Wallet</div>
+            <div style={{ marginTop: 8 }}>
+              <WalletMultiButton style={{
+                background: "rgba(99, 102, 241, 0.2)",
+                border: "1px solid rgba(99, 102, 241, 0.4)",
+                borderRadius: 8,
+                color: "#a5b4fc",
+                fontFamily: "'Inter', sans-serif",
+                fontSize: 14,
+              }} />
+            </div>
+            {publicKey && (
+              <div style={{ ...styles.cardDesc, marginTop: 8, fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}>
+                {publicKey.toBase58().slice(0, 8)}...{publicKey.toBase58().slice(-8)}
+              </div>
+            )}
+          </div>
+          <div style={styles.card}>
+            <div style={styles.cardTitle}>Network</div>
+            <div style={{ ...styles.cardValue, fontSize: 20 }}>Devnet</div>
+            <div style={styles.cardDesc}>
+              <a href="https://faucet.solana.com" target="_blank" rel="noopener noreferrer" style={styles.link}>
+                Get devnet SOL →
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section style={styles.section}>
         <h2 style={styles.sectionTitle}>Run the Demo</h2>
         <div style={styles.codeBlock}>
           <pre style={{ margin: 0, color: "#a1a1aa" }}>
-{`# Build and test
-npm install && anchor build && anchor test
+            {`# Clone and install
+git clone https://github.com/YOUR_USERNAME/st-poland-bounty
+cd st-poland-bounty && npm install
 
-# Run interactive demo scenario
-npm run demo:scenario
+# Run demo against devnet (uses deployed program)
+npm run demo:devnet
 
-# Run keeper (dry-run mode)
-npm run keeper:dry-run
-
-# Run keeper (live mode against localnet)
-npm run keeper:dry-run -- --live`}
+# Or run locally with solana-test-validator
+solana-test-validator  # Terminal 1
+anchor deploy          # Terminal 2
+npm run demo:local     # Terminal 2`}
           </pre>
         </div>
       </section>

@@ -63,7 +63,7 @@ async function main(): Promise<void> {
   try {
     await program.methods
       .createWorkspace(workspaceId)
-      .accounts({
+      .accountsPartial({
         admin: admin.publicKey,
         workspace: workspacePda,
         systemProgram: anchor.web3.SystemProgram.programId,
@@ -114,7 +114,7 @@ async function main(): Promise<void> {
         escalationSeconds: new anchor.BN(3600),
         stages,
       })
-      .accounts({
+      .accountsPartial({
         admin: admin.publicKey,
         workspace: workspacePda,
         template: templatePda,
@@ -157,7 +157,7 @@ async function main(): Promise<void> {
 
   await program.methods
     .startWorkflowRun(workspace.templateCount)
-    .accounts({
+    .accountsPartial({
       creator: admin.publicKey,
       workspace: workspacePda,
       template: templatePda,
@@ -182,7 +182,7 @@ async function main(): Promise<void> {
 
   await program.methods
     .submitTaskResult(true, 0)
-    .accounts({
+    .accountsPartial({
       actor: admin.publicKey,
       workspace: workspacePda,
       run: runPda,
@@ -201,7 +201,7 @@ async function main(): Promise<void> {
 
   await program.methods
     .approveTask()
-    .accounts({
+    .accountsPartial({
       admin: admin.publicKey,
       workspace: workspacePda,
       run: runPda,
@@ -237,7 +237,7 @@ async function main(): Promise<void> {
 
   await program.methods
     .startWorkflowRun(workspace.templateCount)
-    .accounts({
+    .accountsPartial({
       creator: admin.publicKey,
       workspace: workspacePda,
       template: templatePda,
@@ -254,7 +254,7 @@ async function main(): Promise<void> {
 
   await program.methods
     .submitTaskResult(false, 1001)
-    .accounts({
+    .accountsPartial({
       actor: admin.publicKey,
       workspace: workspacePda,
       run: run2Pda,
@@ -271,7 +271,7 @@ async function main(): Promise<void> {
 
   await program.methods
     .retryTask()
-    .accounts({
+    .accountsPartial({
       admin: admin.publicKey,
       workspace: workspacePda,
       run: run2Pda,
@@ -291,7 +291,7 @@ async function main(): Promise<void> {
   for (let i = 1; i <= 2; i++) {
     await program.methods
       .submitTaskResult(false, 1000 + i)
-      .accounts({
+      .accountsPartial({
         actor: admin.publicKey,
         workspace: workspacePda,
         run: run2Pda,
@@ -302,7 +302,7 @@ async function main(): Promise<void> {
 
     await program.methods
       .retryTask()
-      .accounts({
+      .accountsPartial({
         admin: admin.publicKey,
         workspace: workspacePda,
         run: run2Pda,
@@ -316,7 +316,7 @@ async function main(): Promise<void> {
 
   await program.methods
     .submitTaskResult(false, 9999)
-    .accounts({
+    .accountsPartial({
       actor: admin.publicKey,
       workspace: workspacePda,
       run: run2Pda,
@@ -334,7 +334,7 @@ async function main(): Promise<void> {
   try {
     await program.methods
       .retryTask()
-      .accounts({
+      .accountsPartial({
         admin: admin.publicKey,
         workspace: workspacePda,
         run: run2Pda,
@@ -371,7 +371,7 @@ async function main(): Promise<void> {
 
   await program.methods
     .startWorkflowRun(workspace.templateCount)
-    .accounts({
+    .accountsPartial({
       creator: admin.publicKey,
       workspace: workspacePda,
       template: templatePda,
@@ -388,7 +388,7 @@ async function main(): Promise<void> {
   try {
     await program.methods
       .escalateTask()
-      .accounts({
+      .accountsPartial({
         run: run3Pda,
         task: task3Pda,
       })

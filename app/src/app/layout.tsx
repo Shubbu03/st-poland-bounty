@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { WalletContextProvider } from "./providers";
 
 export const metadata: Metadata = {
   title: "On-Chain Workflow Engine | Superteam Poland Bounty",
@@ -17,7 +18,9 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
       </head>
-      <body style={{ margin: 0, background: "#0a0a0f", minHeight: "100vh" }}>{children}</body>
+      <body style={{ margin: 0, background: "#0a0a0f", minHeight: "100vh" }}>
+        <WalletContextProvider>{children}</WalletContextProvider>
+      </body>
     </html>
   );
 }
